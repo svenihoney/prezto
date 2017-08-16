@@ -1,0 +1,162 @@
+# -*- mode: sh; -*-
+#
+# A simple theme that displays relevant, contextual information.
+#
+# Authors:
+#   Alex Reece <awreece@gmail.com>
+#
+# Screenshots:
+#   http://codearcana.com/posts/2013/11/06/my-zsh-theme.html
+#   http://codearcana.com/images/zsh_theme.png
+#
+
+function prompt_svenihoney_help {
+cat <<EOH
+Prompt will look like:
+#############################################################################
++----------- Last part in path to current working directory.
+|
+|        +-- A '#' if root shell, colored green if the last command was
+|        |   successful and red otherwise.
+|        |
+|        |   Duration of last command, colored green if last command --+
+|        |   was successful and red otherwise.                         |
+|        |                                                             |
+|        |   ssh user and hostname -------------------------+          |
+|        |   (if connected via ssh).                        |          |
+|        |                                                  |          |
+|        |   Full path to current working --+               |          |
+|        |   directory (if longer than      |               |          |
+|        |   than 1 segment).               |               |          |
+|        |                                  |               |          |
+|        |   Number of background jobs --+  |               |          |
+|        |   (if any).                   |  |               |          |
+v        v                               v  v               v          v
+#############################################################################
+Developer%                               1& ~/bin/Developer [alex@cmu] 2.001s
+EOH
+}
+
+# Load dependencies.
+pmodload 'helper'
+
+# Return a zero exit status (true) iff the current shell is controlled via ssh.
+function prompt_svenihoney_is_ssh {
+  # Actually, sudo etc clear a bunch of environment variables, including
+  # SSH_CONNECTION, so this doesn't always work. Unfortunately, I don't know
+  # the best way to make it work. For now, I'll hide it in a function and I can
+  # update it when I figure out a better way later.
+  [[ -n $SSH_CONNECTION ]]
+}
+
+function prompt_svenihoney_preview {
+  local +h PROMPT='%# '
+  local +h RPROMPT=''
+  # Set a last_command_time to make it interesting.
+  local +h last_commmand_time=3.14159
+
+  prompt_preview_theme 'svenihoney' "$@"
+}
+
+start_time=$SECONDS
+function prompt_svenihoney_preexec {
+  start_time=$SECONDS
+}
+
+function calc_elapsed_time {
+  if [[ $timer_result -ge 3600 ]]; then
+    let "timer_hours = $timer_result / 3600"
+    let "remainder = $timer_result % 3600"
+    let "timer_minutes = $remainder / 60"
+    let "timer_seconds = $remainder % 60"
+    print -P "%B%F{red}>>> elapsed time ${timer_hours}h${timer_minutes}m${timer_seconds}s%b"
+  elif [[ $timer_result -ge 60 ]]; then
+    let "timer_minutes = $timer_result / 60"
+    let "timer_seconds = $timer_result % 60"
+    print -P "%B%F{yellow}>>> elapsed time ${timer_minutes}m${timer_seconds}s%b"
+  elif [[ $timer_result -gt 10 ]]; then
+    print -P "%B%F{green}>>> elapsed time ${timer_result}s%b"
+  fi
+}
+
+function prompt_svenihoney_precmd {
+  setopt LOCAL_OPTIONS
+  unsetopt XTRACE KSH_ARRAYS
+
+  # Get Git repository information.
+  if (( $+functions[git-info] )); then
+    git_status=git-info
+  fi
+  timer_result=$(($SECONDS-$start_time))
+  if [[ $timer_result -gt 10 ]]; then
+    calc_elapsed_time
+  fi
+  start_time=$SECONDS
+}
+
+function prompt_svenihoney_precmd {
+  setopt LOCAL_OPTIONS
+  unsetopt XTRACE KSH_ARRAYS
+
+  # Get Git repository information.
+  if (( $+functions[git-info] )); then
+    git-info
+  fi
+}
+
+function prompt_svenihoney_setup {
+  setopt LOCAL_OPTIONS
+  unsetopt XTRACE KSH_ARRAYS
+  prompt_opts=(cr percent subst)
+
+  # Load required functions.
+  autoload -Uz add-zsh-hook
+
+  # Add hook for calling git-info before each command.
+  add-zsh-hook precmd prompt_svenihoney_precmd
+  add-zsh-hook precmd prompt_svenihoney_precmd
+
+  zstyle ':prezto:module:editor:info:completing' format '%B%F{red}...%f%b'
+  zstyle ':prezto:module:editor:info:keymap:primary' format ' %B%F{green}❯%f%b'
+  zstyle ':prezto:module:editor:info:keymap:primary:overwrite' format ' %F{yellow}♺%f'
+  zstyle ':prezto:module:editor:info:keymap:alternate' format ' %B%F{green}❮%f%b'
+
+  zstyle ':prezto:module:git:info:action' format ':%%B%F{yellow}%s%f%%b'
+  zstyle ':prezto:module:git:info:added' format ' %%B%F{green}✚%f%%b'
+  zstyle ':prezto:module:git:info:ahead' format ' %%B%F{yellow}⬆%f%%b'
+  zstyle ':prezto:module:git:info:behind' format ' %%B%F{yellow}⬇%f%%b'
+  zstyle ':prezto:module:git:info:branch' format '%b'
+  zstyle ':prezto:module:git:info:commit' format '%.7c'
+  zstyle ':prezto:module:git:info:deleted' format ' %%B%F{red}✖%f%%b'
+  zstyle ':prezto:module:git:info:modified' format ' %%B%F{blue}✱%f%%b'
+  zstyle ':prezto:module:git:info:position' format '%F{red}%p%f'
+  zstyle ':prezto:module:git:info:renamed' format ' %%B%F{magenta}➜%f%%b'
+  zstyle ':prezto:module:git:info:stashed' format ' %%B%F{cyan}✭%f%%b'
+  zstyle ':prezto:module:git:info:unmerged' format ' %%B%F{yellow}═%f%%b'
+  zstyle ':prezto:module:git:info:untracked' format ' %%B%F{white}?%f%%b'
+
+  zstyle ':prezto:module:git:info:keys' format \
+    'prompt' ' %F{white}(%F{yellow}$(coalesce "%b" "%p" "%c")%s%f' \
+    'status' "%A%B%S%a%d%m%r%U%u%F{white})%f"
+
+  # Variables used for prompts.
+  local background_job_status='%(1j.%F{yellow}%j⚙%f .)'
+  local full_directory='%(2~.%F{blue}%~%f .)'
+  local ssh_host=''
+  if prompt_svenihoney_is_ssh; then
+    ssh_host='%F{cyan}[%n@%m]%f '
+  fi
+
+  local task_status='%(1?.%{%F{red}%}✘%f .)'
+  local git_prompt='${(e)git_info[prompt]}${git_info[status]}'
+  local dir_prompt='%F{cyan}%1~%f'
+  local input_prompt='%(!/%F{red}/%F{green})ᐅ%f'
+  # Define prompts.
+  RPROMPT="${task_status}${background_job_status}${full_directory}${ssh_host}"
+
+  # Define prompts.
+  PROMPT='%F{cyan}%1~%f${git_info:+${(e)git_info[prompt]}${git_info[status]}}%(!. %B%F{red}#%f%b.)${editor_info[keymap]} '
+}
+
+prompt_svenihoney_setup "$@"
+

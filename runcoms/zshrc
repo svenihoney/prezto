@@ -11,3 +11,21 @@ if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
 fi
 
 # Customize to your needs...
+if [[ -s "${ZDOTDIR:-$HOME}/.environment" ]]; then
+  source "${ZDOTDIR:-$HOME}/.environment"
+fi
+
+
+setopt NO_SHARE_HISTORY
+setopt CLOBBER
+unsetopt CORRECT
+unsetopt CORRECT_ALL
+unsetopt NOMATCH
+
+bindkey ';5D' emacs-backward-word
+bindkey ';5C' emacs-forward-word
+
+unalias rm
+alias rm='nocorrect rm'
+unalias cp
+alias cp='nocorrect cp'
