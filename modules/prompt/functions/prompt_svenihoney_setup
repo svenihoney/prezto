@@ -141,7 +141,7 @@ function prompt_svenihoney_setup {
 
   # Variables used for prompts.
   local background_job_status='%(1j.%F{yellow}%j⚙%f .)'
-  local full_directory='%(2~.%F{blue}%~%f .)'
+  local full_directory='%(2~.%F{yellow}%~%f .)'
   local ssh_host=''
   if prompt_svenihoney_is_ssh; then
     ssh_host='%F{cyan}[%n@%m]%f '
