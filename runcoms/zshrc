@@ -21,6 +21,7 @@ setopt CLOBBER
 unsetopt CORRECT
 unsetopt CORRECT_ALL
 unsetopt NOMATCH
+setopt RMSTARSILENT
 
 bindkey ';5D' emacs-backward-word
 bindkey ';5C' emacs-forward-word
