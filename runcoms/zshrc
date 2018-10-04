@@ -30,3 +30,5 @@ unalias rm
 alias rm='nocorrect rm'
 unalias cp
 alias cp='nocorrect cp'
+
+source /etc/profile.d/vte.sh
