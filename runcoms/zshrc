@@ -32,3 +32,6 @@ unalias cp
 alias cp='nocorrect cp'
 
 source /etc/profile.d/vte.sh
+
+autoload -U +X bashcompinit && bashcompinit
+complete -o nospace -C /usr/bin/mc mc
