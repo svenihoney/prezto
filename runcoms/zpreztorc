@@ -43,6 +43,8 @@ zstyle ':prezto:load' pmodule \
     'ruby' \
     'pacman' \
     'completion' \
+    'fasd' \
+    'docker' \
     'autosuggestions' \
     'command-not-found' \
     'syntax-highlighting' \

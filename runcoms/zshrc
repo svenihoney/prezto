@@ -35,3 +35,5 @@ source /etc/profile.d/vte.sh
 
 autoload -U +X bashcompinit && bashcompinit
 complete -o nospace -C /usr/bin/mc mc
+
+source /home/sven/.config/broot/launcher/bash/br
